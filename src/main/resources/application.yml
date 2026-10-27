@@ -1,0 +1,44 @@
+spring:
+  profiles:
+    default: local
+
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - "Path=/auth/**"
+            - id: user-service
+              uri: ${USER_SERVICE_URL:http://localhost:8080}
+              predicates:
+                - "Path=/users/**"
+
+server:
+  port: ${SERVER_PORT:8084}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:local-dev-secret-change-me-min-32-characters-long!!}
+  services:
+    auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}
+    user-url: ${USER_SERVICE_URL:http://localhost:8080}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: debug
