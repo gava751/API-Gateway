@@ -4,7 +4,6 @@ import com.innoboard.apigateway.config.ServicesProperties;
 import com.innoboard.apigateway.dto.CredentialsDto;
 import com.innoboard.apigateway.dto.RegisterViaGatewayRequest;
 import com.innoboard.apigateway.dto.UserCreateRequest;
-import com.innoboard.apigateway.dto.UserRole;
 import com.innoboard.apigateway.exception.DownstreamServiceException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -52,7 +51,7 @@ class RegistrationOrchestrationServiceTest {
     private RegisterViaGatewayRequest request() {
         return new RegisterViaGatewayRequest(
                 new UserCreateRequest("Ivan", "Ivanov", LocalDate.of(1990, 1, 1), "ivan@example.com"),
-                new CredentialsDto("ivan", "password123", UserRole.USER));
+                new CredentialsDto("ivan", "password123"));
     }
 
     private MockResponse jsonResponse(int status, String body) {
@@ -77,13 +76,12 @@ class RegistrationOrchestrationServiceTest {
         RecordedRequest createUser = userService.takeRequest(1, TimeUnit.SECONDS);
         assertThat(createUser).isNotNull();
         assertThat(createUser.getMethod()).isEqualTo("POST");
-        assertThat(createUser.getPath()).isEqualTo("/users");
+        assertThat(createUser.getPath()).isEqualTo("/api/users");
         String createBody = createUser.getBody().readUtf8();
         assertThat(createBody).contains("\"name\":\"Ivan\"");
         assertThat(createBody).contains("\"surname\":\"Ivanov\"");
         assertThat(createBody).contains("\"email\":\"ivan@example.com\"");
-        assertThat(createBody).contains("\"active\":true");
-
+        
         RecordedRequest registerCredentials = authService.takeRequest(1, TimeUnit.SECONDS);
         assertThat(registerCredentials).isNotNull();
         assertThat(registerCredentials.getMethod()).isEqualTo("POST");
@@ -92,8 +90,7 @@ class RegistrationOrchestrationServiceTest {
         assertThat(credentialsBody).contains("\"userId\":5");
         assertThat(credentialsBody).contains("\"login\":\"ivan\"");
         assertThat(credentialsBody).contains("\"password\":\"password123\"");
-        assertThat(credentialsBody).contains("\"role\":\"USER\"");
-    }
+            }
 
     @Test
     void rollsBackUserWhenAuthServiceFails() throws Exception {
@@ -107,12 +104,12 @@ class RegistrationOrchestrationServiceTest {
 
         RecordedRequest create = userService.takeRequest(1, TimeUnit.SECONDS);
         assertThat(create).isNotNull();
-        assertThat(create.getPath()).isEqualTo("/users");
+        assertThat(create.getPath()).isEqualTo("/api/users");
 
         RecordedRequest rollback = userService.takeRequest(1, TimeUnit.SECONDS);
         assertThat(rollback).isNotNull();
         assertThat(rollback.getMethod()).isEqualTo("DELETE");
-        assertThat(rollback.getPath()).isEqualTo("/users/7");
+        assertThat(rollback.getPath()).isEqualTo("/api/users/7");
 
         assertThat(authService.getRequestCount()).isEqualTo(1);
     }
@@ -129,12 +126,12 @@ class RegistrationOrchestrationServiceTest {
 
         RecordedRequest create = userService.takeRequest(1, TimeUnit.SECONDS);
         assertThat(create).isNotNull();
-        assertThat(create.getPath()).isEqualTo("/users");
+        assertThat(create.getPath()).isEqualTo("/api/users");
 
         RecordedRequest rollback = userService.takeRequest(1, TimeUnit.SECONDS);
         assertThat(rollback).isNotNull();
         assertThat(rollback.getMethod()).isEqualTo("DELETE");
-        assertThat(rollback.getPath()).isEqualTo("/users/9");
+        assertThat(rollback.getPath()).isEqualTo("/api/users/9");
     }
 
     @Test

@@ -12,6 +12,9 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class JwtService {
 
+    public static final String TYPE_CLAIM = "type";
+    public static final String ACCESS_TOKEN_TYPE = "access";
+
     private final SecretKey key;
 
     public JwtService(JwtProperties properties) {

@@ -31,9 +31,9 @@ public class RegistrationOrchestrationService {
 
     private Mono<Long> createUser(UserCreateRequest user) {
         var payload = new UserPayload(user.name(), user.surname(), user.birthDate().toString(),
-                user.email(), true);
+                user.email());
         return userServiceWebClient.post()
-                .uri("/users")
+                .uri("/api/users")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(UserCreatedResponse.class)
@@ -48,7 +48,7 @@ public class RegistrationOrchestrationService {
         return authServiceWebClient.post()
                 .uri("/auth/register")
                 .bodyValue(new RegisterCredentialsRequest(userId, credentials.login(),
-                        credentials.password(), credentials.role()))
+                        credentials.password()))
                 .retrieve()
                 .toBodilessEntity()
                 .thenReturn(userId)
@@ -61,7 +61,7 @@ public class RegistrationOrchestrationService {
     private Mono<Long> rollbackUser(Long userId, Throwable cause) {
         log.error("Registration failed for userId={}, rolling back user creation", userId, cause);
         return userServiceWebClient.delete()
-                .uri("/users/{id}", userId)
+                .uri("/api/users/{id}", userId)
                 .retrieve()
                 .toBodilessEntity()
                 .doOnError(rollbackEx ->
@@ -70,9 +70,6 @@ public class RegistrationOrchestrationService {
                 .then(Mono.error(cause));
     }
 
-    /**
-     * Outbound payload for user-service POST /users.
-     */
-    record UserPayload(String name, String surname, String birthDate, String email, Boolean active) {
+    record UserPayload(String name, String surname, String birthDate, String email) {
     }
 }

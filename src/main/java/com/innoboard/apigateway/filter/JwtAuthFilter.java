@@ -22,7 +22,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class JwtAuthFilter implements GlobalFilter, Ordered {
 
-    private static final Set<String> PUBLIC_PATHS = Set.of("/auth/login", "/auth/register");
+    private static final Set<String> PUBLIC_PATHS =
+            Set.of("/auth/login", "/auth/register", "/auth/refresh", "/auth/validate");
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtService jwtService;
@@ -42,6 +43,10 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
         try {
             Claims claims = jwtService.parse(authHeader.substring(BEARER_PREFIX.length()));
+
+            if (!JwtService.ACCESS_TOKEN_TYPE.equals(claims.get(JwtService.TYPE_CLAIM, String.class))) {
+                return unauthorized(exchange, "Access token required");
+            }
 
             var mutatedRequest = request.mutate()
                     .headers(headers -> {

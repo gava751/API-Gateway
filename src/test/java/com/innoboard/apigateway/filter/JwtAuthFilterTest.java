@@ -64,6 +64,7 @@ class JwtAuthFilterTest {
     private String token(Instant expiration) {
         return Jwts.builder()
                 .subject("42")
+                .claim("type", "access")
                 .claim("role", "USER")
                 .issuedAt(new Date())
                 .expiration(Date.from(expiration))
@@ -81,13 +82,31 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    void loginAndRegisterArePublic() {
-        for (String path : List.of("/auth/login", "/auth/register")) {
+    void publicPathsBypassAuthentication() {
+        for (String path : List.of("/auth/login", "/auth/register", "/auth/refresh", "/auth/validate")) {
             MockServerWebExchange testExchange = exchange(path, null);
             filter.filter(testExchange, chain).block();
             verify(chain).filter(testExchange);
             assertThat(testExchange.getResponse().getStatusCode()).isNotEqualTo(HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @Test
+    void refreshTokenIsNotAcceptedAsBearer() {
+        String refreshToken = Jwts.builder()
+                .subject("42")
+                .claim("type", "refresh")
+                .claim("role", "USER")
+                .issuedAt(new Date())
+                .expiration(Date.from(Instant.now().plus(15, ChronoUnit.MINUTES)))
+                .signWith(key)
+                .compact();
+        MockServerWebExchange testExchange = exchange("/users/1", "Bearer " + refreshToken);
+
+        filter.filter(testExchange, chain).block();
+
+        verifyNoInteractions(chain);
+        assertThat(testExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
@@ -148,6 +167,7 @@ class JwtAuthFilterTest {
     void validTokenWithoutRoleClaimStillForwardsUserId() {
         String token = Jwts.builder()
                 .subject("7")
+                .claim("type", "access")
                 .expiration(Date.from(Instant.now().plus(15, ChronoUnit.MINUTES)))
                 .signWith(key)
                 .compact();

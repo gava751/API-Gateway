@@ -9,7 +9,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me-min-32-characters-long!!}
+      JWT_SECRET: ${JWT_SECRET}
       AUTH_SERVICE_URL: http://auth-service-app:8081
       USER_SERVICE_URL: http://user-service-app:8080
     ports:
@@ -26,7 +26,7 @@ services:
       DB_USERNAME: auth_service
       DB_PASSWORD: auth_service
       DB_URL: jdbc:postgresql://auth-postgres:5432/auth_service
-      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me-min-32-characters-long!!}
+      JWT_SECRET: ${JWT_SECRET}
     expose:
       - "8081"
     healthcheck:

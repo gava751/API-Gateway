@@ -14,10 +14,18 @@ spring:
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
                 - "Path=/auth/**"
-            - id: user-service
+            - id: user-service-users
               uri: ${USER_SERVICE_URL:http://localhost:8080}
               predicates:
                 - "Path=/users/**"
+              filters:
+                - 'RewritePath=/users/(?<segment>.*), /api/users/$\{segment}'
+            - id: user-service-cards
+              uri: ${USER_SERVICE_URL:http://localhost:8080}
+              predicates:
+                - "Path=/cards/**"
+              filters:
+                - 'RewritePath=/cards/(?<segment>.*), /api/cards/$\{segment}'
 
 server:
   port: ${SERVER_PORT:8084}
@@ -34,11 +42,8 @@ management:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:local-dev-secret-change-me-min-32-characters-long!!}
+    secret: ${JWT_SECRET}
   services:
     auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}
     user-url: ${USER_SERVICE_URL:http://localhost:8080}
 
-logging:
-  level:
-    org.springframework.cloud.gateway: debug

@@ -1,0 +1,3 @@
+app:
+  jwt:
+    secret: test-secret-key-for-api-gateway-min-32-bytes!!
