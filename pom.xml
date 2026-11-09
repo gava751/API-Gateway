@@ -21,7 +21,7 @@
         <java.version>25</java.version>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.projectKey>gava751_Api-Gateway</sonar.projectKey>
+        <sonar.projectKey>gava751_API-Gateway</sonar.projectKey>
         <sonar.organization>gava751</sonar.organization>
     </properties>
 
