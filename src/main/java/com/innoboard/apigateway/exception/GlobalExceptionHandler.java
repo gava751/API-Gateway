@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
@@ -15,16 +14,6 @@ import java.time.Instant;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    @ExceptionHandler(WebExchangeBindException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Mono<ErrorResponse> handleValidation(WebExchangeBindException ex) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .reduce((a, b) -> a + "; " + b)
-                .orElse("Validation failed");
-        return Mono.just(error(HttpStatus.BAD_REQUEST, message));
-    }
 
     @ExceptionHandler(ResponseStatusException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleResponseStatus(ResponseStatusException ex) {
