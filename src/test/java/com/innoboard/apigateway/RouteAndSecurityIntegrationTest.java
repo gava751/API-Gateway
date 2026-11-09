@@ -11,9 +11,11 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -294,5 +296,29 @@ class RouteAndSecurityIntegrationTest {
                 .exchange()
                 .expectStatus().isOk();
         assertThat(lastForwarded().getPath()).isEqualTo("/api/items");
+    }
+
+    @Test
+    void healthEndpointIsPublicAndReachableWithoutToken() {
+        client().get().uri("/actuator/health")
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    @Test
+    void unsupportedMethodOnActuatorIsNeutral405() {
+        client().delete().uri("/actuator/health")
+                .exchange()
+                .expectStatus().isEqualTo(405)
+                .expectBody()
+                .jsonPath("$.message").isEqualTo("Method not allowed");
+    }
+
+    @Test
+    void mainStartsAndStopsApplicationContext() {
+        try (ConfigurableApplicationContext context = SpringApplication.from(ApiGatewayApplication::main)
+                .run("--server.port=0").getApplicationContext()) {
+            assertThat(context.isActive()).isTrue();
+        }
     }
 }
