@@ -5,6 +5,12 @@ spring:
   application:
     name: api-gateway
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_SERVICE_URL:http://localhost:8081}/.well-known/jwks.json
+
   cloud:
     gateway:
       server:
@@ -13,14 +19,26 @@ spring:
             - id: auth-service
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
-                - "Path=/auth/**"
-            - id: user-service
-              uri: ${USER_SERVICE_URL:http://localhost:8080}
+                - "Path=/api/auth/**"
+            - id: user-service-users
+              uri: ${USER_SERVICE_URL:http://localhost:8082}
               predicates:
-                - "Path=/users/**"
+                - "Path=/api/users/**"
+            - id: user-service-cards
+              uri: ${USER_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - "Path=/api/cards/**"
+            - id: order-service-orders
+              uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - "Path=/api/orders/**"
+            - id: order-service-items
+              uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - "Path=/api/items/**"
 
 server:
-  port: ${SERVER_PORT:8084}
+  port: ${SERVER_PORT:8080}
 
 management:
   endpoints:
@@ -31,14 +49,3 @@ management:
     health:
       probes:
         enabled: true
-
-app:
-  jwt:
-    secret: ${JWT_SECRET:local-dev-secret-change-me-min-32-characters-long!!}
-  services:
-    auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}
-    user-url: ${USER_SERVICE_URL:http://localhost:8080}
-
-logging:
-  level:
-    org.springframework.cloud.gateway: debug
